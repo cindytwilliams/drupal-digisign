@@ -1,0 +1,5 @@
+name = VSCC Slide Templates
+description = Determine which slide template to display based on the event type
+core = 7.x
+
+dependencies[] = feeds

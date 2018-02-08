@@ -1,0 +1,107 @@
+<?php
+	
+/* -----------------------------------------
+	VSCC - Slideshow Templates
+	
+	author: Cindy Williams
+	date: June 2017
+	
+	Implements hook_feeds_after_parse.
+	Invoked after a feed source has been parsed, before it will be processed.
+---------------------------------------------*/
+
+
+// make changes to Trumba Events data before slides are created
+function vscc_slide_templates_feeds_after_parse(FeedsSource $source, FeedsParserResult $result) {
+	
+	// set path to slide image files
+	$path = 'public://slides/';		// sites/default/files
+	
+	// map slide templates to event types
+	$template = array(
+    'Academic' => 'academic.jpg',
+		'Athletic' => 'athletics.jpg',
+		'Campus Tours' => 'other.jpg',
+		'Career Fair/Event' => 'events.jpg',
+		'Committee Meeting' => 'other.jpg',
+		'Community Event' => 'events.jpg',
+		'Conference' => 'speaker.jpg',
+		'Continuing Education' => 'academic.jpg',
+		'Continuing Education Class' => 'academic.jpg',
+		'Exhibit' => 'exhibit.jpg',
+		'First Year Experience' => 'other.jpg',
+		'Foundation Events' => 'other.jpg',
+		'Fundraiser' => 'events.jpg',
+		'Graduation' => 'graduation.jpg',
+		'Holiday' => 'holiday.jpg',
+		'Lecture/Speaker' => 'speaker.jpg',
+		'Luncheon' => 'speaker.jpg',
+		'Meeting' => 'speaker.jpg',
+		'Open House' => 'speaker.jpg',
+		'Performance' => 'performance.jpg',
+		'Professional Development' => 'speaker.jpg',
+		'Reception' => 'speaker.jpg',
+		'Recreational Sports' => 'recreational.jpg',
+		'Rehearsal' => 'performance.jpg',
+		'Seminar' => 'speaker.jpg',
+		'Speaker' => 'speaker.jpg',
+		'Special Event' => 'events.jpg',
+		'Student Activity' => 'events.jpg',
+		'Student Orientation' => 'other.jpg',
+		'Testing' => 'other.jpg',
+		'TN Promise' => 'tnpromise.jpg',
+		'Training' => 'other.jpg',
+		'Volunteer Opportunity' => 'other.jpg',
+		'Workshop' => 'speaker.jpg',
+		'Other' => 'other.jpg'
+	);
+  
+	// loop through events in feed source
+  	foreach ($result->items as $key => $row) {
+    	
+    	// strip special characters from title and description fields
+    	$result->items[$key]['field_slide_title'] = stripHTML($row['field_slide_title']);
+    	$result->items[$key]['field_slide_description'] = stripHTML($row['field_slide_description']);
+    	
+    	$eventtype = $row['field_slide_eventtype'][1];
+    	
+    	// check if event type values are separated by commas
+    	$pos = strpos($eventtype, ',');
+    	if ($pos === false) {
+      } else {
+        // get the first event in the comma-separated list
+        $eventtype = substr($eventtype, 0, $pos);
+      }
+      if ($eventtype == 'Lecture/Speaker') {
+        $eventtype = 'Speaker';
+      }
+    	
+    	// store the event type value
+		  $result->items[$key]['field_slide_eventtype'] = $eventtype;
+		
+      // set slide image based on event type
+		  $result->items[$key]['field_slide_image'] = $path . $template[$eventtype];
+		
+  	}
+  
+}
+
+function stripHTML($str) {
+  
+  // spaces
+  $str = str_replace('&nbsp;', " ", $str);
+  
+  // ampersands
+  $str = str_replace('&amp;', "&", $str);
+  
+  // new lines
+  $str = preg_replace('#<br[/\s]*>#si', "\n", $str);
+  
+  // other characters
+  $str = strip_tags(html_entity_decode($str));
+  $str = preg_replace('/[^a-zA-Z0-9.,:!\$\%\@()\'\"\/\&\s\n-]/', '', $str);
+  
+  return $str;
+  
+}
+
